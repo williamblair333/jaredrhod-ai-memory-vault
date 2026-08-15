@@ -9,7 +9,7 @@ Read this file at the start of every conversation. It has two jobs: **the profil
 
 (This is a starter template. Every spot that needs your information is marked **[FILL IN: ...]**. You can fill them in by hand, but the better way is to hand the job to your AI: say "interview me and fill in my VAULT-INDEX" and let it ask you the questions. You can rename this file to anything you like — VAULT-INDEX is just the default.)
 
-(**AI:** if you are reading this file and any [FILL IN: ...] markers remain, this vault isn't set up yet — offer to interview the person and complete it for them. Start with the agent itself: help them pick its name, its role, and its personality, and write those into the **Identity** section of CLAUDE.md (the boot file), not this note. Then ask about one topic at a time, conversationally. Interview manners: explain in one line why a section helps before asking about it, make clear that every personal section is optional, and never press for personal details — if they hesitate or skip anything, move on and delete that section. Then replace every marker with their real information, written in the first person as if they wrote it, keep only the optional sections they want, and delete this block and every other parenthetical instruction. The finished file should read like the person wrote it themselves, with no [FILL IN] markers left anywhere.)
+(**AI:** if you are reading this file and any [FILL IN: ...] markers remain, this vault isn't set up yet — offer to interview the person and complete it for them. Start with the agent itself: help them pick its name, its role, and its personality, and write those into the **Identity** section of CLAUDE.md (the boot file), not this note. Then ask about one topic at a time, conversationally. Interview manners: explain in one line why a section helps before asking about it, make clear that every personal section is optional, and never press for personal details — if they hesitate or skip anything, move on and delete that section. Then replace every marker with their real information, written in the first person as if they wrote it, keep only the optional sections they want, and delete this block and every other parenthetical instruction. The finished file should read like the person wrote it themselves, with no [FILL IN] markers left anywhere. **Three topics do not go in this file:** anything they tell you about Key People, Health, or Beliefs goes into `Personal Context.md` in the Personal folder instead — see the "Sensitive context" section below for why, and use `templates/PERSONAL-CONTEXT.md` as its starting shape.)
 
 ---
 
@@ -23,10 +23,11 @@ This vault lives at `[FILL IN: your vault's full path — e.g. /Users/you/Docume
 
 [FILL IN: your name and whatever context you want the AI to have — what you do, where you're based if you care to share it. First person, conversational, concise. Nothing here is required; share what's useful, skip what's not.]
 
-## Key People
+## Sensitive context — deliberately not in this file
 
-[FILL IN: one line per important person in your work and life — partners, team, family, mentors:]
-- **[[Name]]** — [FILL IN: who they are and their role to you]
+Key People, Health, and Beliefs live in a separate note: [[Personal Context]], in the Personal folder. They are kept out of this index on purpose. This index is read into the model's context at the **start of every conversation, with every AI I use** — which means anything written here is transmitted to a model provider on essentially every turn, and lands in their logs. Medical details, personal values, and other people's names and relationships (who never agreed to any of this) do not belong in a file with that blast radius.
+
+**AI: read [[Personal Context]] only when the task in front of you actually needs it** — work involving the people I deal with, my health, or my values. The rest of the time, leave it on disk. When you do open it, say so.
 
 ## [FILL IN: Project 1 name, with its folder in parentheses — e.g. "The Coffee Shop (02 - Coffee Shop)"]
 
@@ -64,14 +65,8 @@ All open work lives in one note: [[Active Priorities]]. Tag each item with its p
 ## How I Think
 [FILL IN: bullets, first person.]
 
-## Health
-[FILL IN: only what you want the AI to factor in — routines, goals, constraints. Or delete this section.]
-
 ## Personal Interests
 [FILL IN: bullets, first person.]
-
-## Beliefs
-[FILL IN: bullets, first person — only if you want the AI to know. Or delete this section.]
 
 ## Daily Routine
 [FILL IN: bullets, first person.]
@@ -130,7 +125,7 @@ type: plan
 
 When creating or editing a note, add `wikilinks`:
 
-**Always link:** anyone in Key People · named businesses, products, and platforms · any note this one directly references, extends, or depends on.
+**Always link:** anyone listed in [[Personal Context]] (that roster isn't loaded at boot — if the task involves people, open it first) · named businesses, products, and platforms · any note this one directly references, extends, or depends on.
 **Never link:** generic words just because a note shares the name · the same target twice in one note · the note's own title.
 
 ### How to Determine Each Field
@@ -206,10 +201,11 @@ This is universal — every AI that reads this vault does it. I use multiple AIs
 
 This file is a living document. Update the profile sections as you learn new things about me through conversation. Updates happen silently and are logged in the daily note under "Profile Updates."
 
-**You can update:** Key People · How I Think · Health · Personal Interests · Beliefs · Daily Routine.
+**You can update in this file:** How I Think · Personal Interests · Daily Routine.
+**You can update in [[Personal Context]]:** Key People · Health · Beliefs — same judgment rules, with one addition: only write there when that note is already open for the current task. Never open it just to write to it, and never move its contents back into this index.
 **You must NOT update:** Who I Am (basic bio — only I change it) · the project sections · What's Active Right Now (lives in Active Priorities) · My Preferences for Working with AI · Vault Rules for AI.
 **Vault Structure is a special case:** never rewrite it on your own initiative, but when a folder is actually created, renamed, or removed, updating the map is part of that change — do it in the same pass.
 
 Judgment: a passing mention is not a personality trait. Check for duplicates/contradictions; if new info contradicts an entry, update that entry rather than adding a second. Match existing tone. Never remove an entry unless explicitly contradicted. Fewer, higher-quality updates.
 
-Log every profile update in the daily note's "Profile Updates" section (e.g. "**Personal Interests:** added woodworking").
+Log every profile update in the daily note's "Profile Updates" section (e.g. "**Personal Interests:** added woodworking"). For [[Personal Context]], log only that it changed — "**Personal Context:** updated" — never what changed. Daily notes are boot-adjacent and get read back; that's the whole reason those three topics moved out.
