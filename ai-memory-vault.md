@@ -122,12 +122,6 @@ Before anything else, determine whether you have write access to the person's Ob
 
 **Existing vault check:** After confirming access, check if a VAULT-INDEX.md already exists at the vault root. If it does, tell the person: "It looks like you already have a memory vault set up in this vault. If I continue, I'll overwrite your existing VAULT-INDEX.md and folder structure. Want me to proceed, or back up the existing file first?" If they want a backup, copy the existing VAULT-INDEX.md to the Archive folder with a timestamped filename before proceeding.
 
-**Migrating an existing vault (built before the profile split).** If a VAULT-INDEX.md is already there and it still carries `## Key People`, `## Health`, or `## Beliefs` inline, that vault predates this change and is boot-loading that material on every turn. Say so plainly and offer to fix it:
-
-"Your index has [Key People / Health / Beliefs] in it, which means all of it gets sent to the AI as context at the start of every conversation and sits in the provider's logs. Newer builds keep those three in a separate note that only gets opened when a task needs them. Want me to move them? It's a cut-and-paste into `Personal Context.md` — nothing is lost, and I'll show you the result before saving."
-
-On a yes: create `[N] - Personal/Personal Context.md` per 4.2a, move those sections into it **verbatim** (move, don't summarize — this is the person's own writing), replace them in the index with the "Sensitive context" pointer block, and update the Living Profile rules to the split version. Commit before and after if the vault is under git. Do not do this silently, and do not do it without asking — the material is theirs.
-
 **Version control check (do not skip — Part 1 may have been skipped).** Check whether the vault is a git repository (`git -C "<vault path>" rev-parse --git-dir`). If it is not, stop and say:
 
 "One thing before I build: your vault isn't under version control. From here on I'll be writing and consolidating notes in here, sometimes without asking each time — that's what makes the system self-maintaining, and it's only safe if every change is reversible. Notes are plain files with no history of their own. Want me to run `git init` and commit the current state first? It takes two seconds, changes nothing about how you use Obsidian, and it's the difference between 'undo that' and 'that's gone.'"
