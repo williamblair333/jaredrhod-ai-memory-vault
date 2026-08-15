@@ -49,12 +49,30 @@ Build these three things well and the AI stops being a chatbot the person re-exp
 
 Goal: Obsidian installed, synced, and readable/writable by Claude. Pick one connection path.
 
-## Step 1 — Install Obsidian + Sync
+## Step 1 — Install Obsidian, then put the vault under version control
 
 1. Download Obsidian from obsidian.md and install it.
 2. Create a new vault. Name it something personal ("Brain," "HQ," the person's name). Use the default location — do NOT put it inside iCloud if they'll use Obsidian Sync (two sync engines on one set of files causes conflicts).
 3. (Optional — skip it freely.) Obsidian Sync is a paid add-on that only syncs the vault between devices; it is NOT needed for anything in this system. The vault is plain files on your computer and the AI reads them directly. If you ever want multi-device sync later, Sync works (Settings → Core plugins → Sync; standard encryption is fine), and iCloud or a private GitHub repo do it free.
 4. Settings → Files & Links → turn ON "Automatically update internal links" so renaming a note repairs every link to it.
+
+5. **Put the vault under git before any AI writes to it.** This is not optional housekeeping — it is the undo button for the entire system. You are about to give an AI write access to your notes, and the rules it follows tell it to consolidate ("delete what you replaced") and to edit vault notes without asking first. That is the right default for a memory that has to maintain itself, and it is only safe because every change is recoverable. Obsidian notes are plain files with no history of their own; without this step, one bad consolidation pass is gone for good.
+
+   Open a terminal in the vault folder and run:
+
+   ```bash
+   cd "/path/to/your/vault"
+   git init
+   printf '.obsidian/workspace.json\n.obsidian/workspace-mobile.json\n.trash/\n' > .gitignore
+   git add -A
+   git commit -m "vault: initial state before AI setup"
+   ```
+
+   Then commit again whenever you've done real work: `git add -A && git commit -m "what changed"`. To see what an AI changed in a session, `git diff`. To undo a bad edit to one note, `git checkout -- "path/to/note.md"`.
+
+   Don't want to touch a terminal? Tell your AI: "put my vault under git and make an initial commit." It can run all of the above for you. If git isn't installed, get it from git-scm.com. Git sits alongside Obsidian Sync or iCloud without conflict — it tracks history, they move files between devices; the two do different jobs.
+
+6. Settings → Core plugins → turn ON **File Recovery** (and set snapshot frequency to a few minutes). This covers you between commits, per-file, from inside the app.
 
 ## Step 2 — Connect Claude to the vault
 
@@ -104,6 +122,18 @@ Before anything else, determine whether you have write access to the person's Ob
 
 **Existing vault check:** After confirming access, check if a VAULT-INDEX.md already exists at the vault root. If it does, tell the person: "It looks like you already have a memory vault set up in this vault. If I continue, I'll overwrite your existing VAULT-INDEX.md and folder structure. Want me to proceed, or back up the existing file first?" If they want a backup, copy the existing VAULT-INDEX.md to the Archive folder with a timestamped filename before proceeding.
 
+**Migrating an existing vault (built before the profile split).** If a VAULT-INDEX.md is already there and it still carries `## Key People`, `## Health`, or `## Beliefs` inline, that vault predates this change and is boot-loading that material on every turn. Say so plainly and offer to fix it:
+
+"Your index has [Key People / Health / Beliefs] in it, which means all of it gets sent to the AI as context at the start of every conversation and sits in the provider's logs. Newer builds keep those three in a separate note that only gets opened when a task needs them. Want me to move them? It's a cut-and-paste into `Personal Context.md` — nothing is lost, and I'll show you the result before saving."
+
+On a yes: create `[N] - Personal/Personal Context.md` per 4.2a, move those sections into it **verbatim** (move, don't summarize — this is the person's own writing), replace them in the index with the "Sensitive context" pointer block, and update the Living Profile rules to the split version. Commit before and after if the vault is under git. Do not do this silently, and do not do it without asking — the material is theirs.
+
+**Version control check (do not skip — Part 1 may have been skipped).** Check whether the vault is a git repository (`git -C "<vault path>" rev-parse --git-dir`). If it is not, stop and say:
+
+"One thing before I build: your vault isn't under version control. From here on I'll be writing and consolidating notes in here, sometimes without asking each time — that's what makes the system self-maintaining, and it's only safe if every change is reversible. Notes are plain files with no history of their own. Want me to run `git init` and commit the current state first? It takes two seconds, changes nothing about how you use Obsidian, and it's the difference between 'undo that' and 'that's gone.'"
+
+On a yes, run the `git init` / `.gitignore` / initial-commit sequence from Part 1 Step 1, confirm the commit landed by reading back `git -C "<vault path>" log --oneline -1`, and report the hash. If they decline, say plainly once that you'll be making unconfirmed edits to their notes with no undo, then respect the decision and continue. Do not ask twice.
+
 ---
 
 ## PHASE 2: WELCOME
@@ -141,7 +171,7 @@ For each business or project they mention:
 - "Any key tools, platforms, or systems you use for it?"
 
 **3. Key People**
-"Who are the important people in your work and life? Business partners, team, family, mentors, close friends. Name and a one-line description of who they are to you."
+"Who are the important people in your work and life? Business partners, team, family, mentors, close friends. Name and a one-line description of who they are to you. Worth knowing before you answer: these people didn't opt into this, so I'll keep this in a note I only open when a task actually involves them — not in the file I read at the start of every conversation." *(Goes in `Personal Context.md`, not the VAULT-INDEX — see 4.2a.)*
 
 **4. What's Active Right Now**
 "What are your current priorities? What are you actively trying to get done in the near term?"
@@ -155,11 +185,11 @@ For each business or project they mention:
 
 **6. How You Think** — "How would you describe the way you approach problems? Any patterns or quirks in how you work?"
 
-**7. Health** — "Anything health-related you'd want your AI aware of? Medications, conditions, goals? This stays in your local vault and is never sent anywhere except as context in your own AI conversations."
+**7. Health** — "Anything health-related you'd want me to factor in? Routines, constraints, goals? Be straight with you on where this goes: it's stored as plain text on your own machine, but any note I read gets uploaded to the AI provider as context and sits in their logs. So I keep this one in a note I only open when a task actually needs it, rather than the file I read every session. Share only what earns its keep, and skip it entirely if you'd rather — nothing else in the system depends on it." *(Goes in `Personal Context.md`, not the VAULT-INDEX — see 4.2a.)*
 
 **8. Personal Interests** — "What do you do outside work? Hobbies, games, sports, creative projects?"
 
-**9. Beliefs and Values** — "Any core beliefs or values that shape how you see the world?"
+**9. Beliefs and Values** — "Any core beliefs or values that shape how you see the world?" *(Goes in `Personal Context.md`, not the VAULT-INDEX — see 4.2a.)*
 
 **10. Daily Routine** — "Walk me through a typical day. When do you wake up, work, stop?"
 
@@ -191,8 +221,9 @@ Before you create a single file, show the person exactly what you are about to m
 - a folder for each thing you're working on: [name the projects they gave you]
 - an Inbox, a Daily Notes folder, a Personal folder, an Archive, and a Resources folder
 - a single Active Priorities note, your profile, and a starter Job for each recurring task you mentioned
+- a separate Personal Context note in your Personal folder for the people in your life, your health, and your values — kept out of the file I read every session, so that material only gets sent to the AI when a task actually needs it
 
-No apps get installed. No system settings get touched. Nothing leaves this folder, and nothing on your computer changes outside of it. You'll see every file appear as I create it, and you can stop me at any point. Want me to go ahead?"
+No apps get installed. No system settings get touched. Nothing leaves this folder, and nothing on your computer changes outside of it. Your vault is under git, so every one of these files is a commit you can roll back. You'll see every file appear as I create it, and you can stop me at any point. Want me to go ahead?"
 
 Wait for a clear yes before you build anything. If they want to rename a folder, drop one, or change anything, adjust first, then proceed.
 
@@ -249,10 +280,11 @@ This vault lives at `[the person's real vault path]`. If you use Claude Desktop,
 
 [Name plus whatever context they chose to share. First person, conversational, concise. Include only what they offered — never pad this section.]
 
-## Key People
+## Sensitive context — deliberately not in this file
 
-[For each person from discovery:]
-- **[[Name]]** — [one-line description of who they are and their role]
+Key People, Health, and Beliefs live in a separate note: [[Personal Context]], in the Personal folder. They are kept out of this index on purpose. This index is read into the model's context at the **start of every conversation, with every AI I use** — which means anything written here is transmitted to a model provider on essentially every turn, and lands in their logs. Medical details, personal values, and other people's names and relationships (who never agreed to any of this) do not belong in a file with that blast radius.
+
+**AI: read [[Personal Context]] only when the task in front of you actually needs it** — work involving the people I deal with, my health, or my values. The rest of the time, leave it on disk. When you do open it, say so.
 
 ## [Project 1 Name] ([Folder Number] - [Project Folder Name])
 
@@ -288,13 +320,7 @@ All open work lives in one note: [[Active Priorities]]. Tag each item with its p
 ## How I Think
 [Bullets, first person.]
 
-## Health
-[Bullets, first person — only what they chose to share.]
-
 ## Personal Interests
-[Bullets, first person.]
-
-## Beliefs
 [Bullets, first person.]
 
 ## Daily Routine
@@ -352,7 +378,7 @@ type: plan
 
 When creating or editing a note, add `wikilinks`:
 
-**Always link:** anyone in Key People · named businesses, products, and platforms · any note this one directly references, extends, or depends on.
+**Always link:** anyone listed in [[Personal Context]] (that roster isn't loaded at boot — if the task involves people, open it first) · named businesses, products, and platforms · any note this one directly references, extends, or depends on.
 **Never link:** generic words just because a note shares the name · the same target twice in one note · the note's own title.
 
 ### How to Determine Each Field
@@ -426,16 +452,66 @@ This is universal — every AI that reads this vault does it. [First name] uses 
 
 This file is a living document. Update the profile sections as you learn new things about [first name] through conversation. Updates happen silently and are logged in the daily note under "Profile Updates."
 
-**You can update:** Key People · How I Think · Health · Personal Interests · Beliefs · Daily Routine.
+**You can update in this file:** How I Think · Personal Interests · Daily Routine.
+**You can update in [[Personal Context]]:** Key People · Health · Beliefs — same judgment rules, with one addition: only write there when that note is already open for the current task. Never open it just to write to it, and never move its contents back into this index.
 **You must NOT update:** Who I Am (basic bio — only [first name] changes it) · the project sections · What's Active Right Now (lives in Active Priorities) · My Preferences for Working with AI · Vault Rules for AI.
 **Vault Structure is a special case:** never rewrite it on your own initiative, but when a folder is actually created, renamed, or removed, updating the map is part of that change — do it in the same pass.
 
 Judgment: a passing mention is not a personality trait. Check for duplicates/contradictions; if new info contradicts an entry, update that entry rather than adding a second. Match existing tone. Never remove an entry unless explicitly contradicted. Fewer, higher-quality updates.
 
-Log every profile update in the daily note's "Profile Updates" section (e.g. "**Personal Interests:** added woodworking").
+Log every profile update in the daily note's "Profile Updates" section (e.g. "**Personal Interests:** added woodworking"). For [[Personal Context]], log only that it changed — "**Personal Context:** updated" — never what changed. Daily notes are boot-adjacent and get read back; that's the whole reason those three topics moved out.
 ````
 
 **IMPORTANT:** The VAULT-INDEX.md above is a TEMPLATE. Fill in every bracketed section with the person's real information. Leave no brackets, no placeholders. Write it as if they wrote it.
+
+### 4.2a Personal Context (the on-demand half of the profile)
+
+Create this at `[N] - Personal/Personal Context.md`. It holds the answers to discovery questions 3 (Key People), 7 (Health), and 9 (Beliefs) — and those three go **here, never in the VAULT-INDEX**.
+
+The reason is worth understanding, because it changes how you treat this file for the life of the vault. VAULT-INDEX.md is read at the start of every conversation, with every AI the person uses. Everything in it is therefore uploaded to a model provider on essentially every turn and retained in that provider's logs. That is an acceptable trade for a profile and a folder map. It is not an acceptable default for someone's medications, their values, or the names and relationships of family and colleagues who were never asked. Those three topics get read on demand instead — only when a task genuinely calls for them.
+
+If the person skipped all three questions, skip this file entirely and say so.
+
+*(Maintainer note: this embedded template deliberately duplicates `templates/PERSONAL-CONTEXT.md` so this one file works standalone. The two must stay in step — an edit to one is an edit to both, in the same commit.)*
+
+````markdown
+---
+status: active
+project: personal
+type: reference
+---
+# Personal Context
+
+The private half of my profile: the people around me, my health, and my values.
+
+**This note is not loaded at boot, and that is the point.** VAULT-INDEX.md gets read into the model's context at the start of every conversation, with every AI I use — so everything in that file is transmitted to a model provider on essentially every turn and kept in their logs. This note is read on demand instead, so the sensitive material only leaves my machine when a task genuinely calls for it.
+
+(**AI:** read this note only when the current task actually needs it — work involving the people I deal with, my health, or my values. Say so when you open it. Don't quote from it back into VAULT-INDEX.md, a daily note, or any other file that gets read at boot, and don't summarize it into a handoff doc.)
+
+## Key People
+
+[For each person from discovery question 3:]
+- **[[Name]]** — [one-line description of who they are and their role]
+
+## Health
+
+[Only what they chose to share, first person. Omit this section entirely if they skipped the question.]
+
+## Beliefs
+
+[Bullets, first person. Omit this section entirely if they skipped the question.]
+
+---
+
+## Rules for this note
+
+- **On-demand only.** Nothing here gets copied into VAULT-INDEX.md, CLAUDE.md, a daily note, or any other boot-loaded file.
+- **Updates need a reason to be open.** Fold in what you learn about these three topics, but only while this note is already open for a task — never open it just to write to it.
+- **Health and Beliefs get confirmed, not inferred.** Before writing to those two sections, say what you're about to record and wait for a yes. An inferred medical or ideological "fact" becomes permanent record that every future session treats as true.
+- **Log the fact of an update, not its content.** In the daily note's Profile Updates, write "**Personal Context:** updated" — not what changed.
+````
+
+Then add a line to the Personal folder's index (4.6) pointing at it, exactly as you would any other note.
 
 ### 4.3 Daily Note Template
 
@@ -686,13 +762,17 @@ Make sure every folder exists. The indexes (4.6), Active Priorities (4.4), and t
 ## PHASE 5: VERIFY AND ONBOARD
 
 ### Verify
-List every file you created and confirm it wrote successfully. Retry any that failed.
+List every file you created and confirm it wrote successfully. Retry any that failed. Then commit the finished build so there's a clean restore point: `git -C "<vault path>" add -A && git -C "<vault path>" commit -m "vault: initial memory system build"`. Read back the log line and tell them the hash. (Skip only if they declined version control in Phase 1.)
 
 ### Onboard
 Walk the person through what was built, in plain language:
 
 1. **The boot config + VAULT-INDEX** — "These are my brain. I read them first every session. The boot config holds who I am — my name and personality — plus where my memory lives and the few rules that can never lapse; the index holds who YOU are, your projects, and the map of the vault. The profile updates itself over time."
 2. **Memory on demand** — "Your whole vault is my memory now, and there's no size limit on it. I don't carry it all at once. I hold what a task needs and reach for anything else in a second. That's why it stays fast no matter how big it gets."
+
+   **Personal Context** — "One thing I deliberately kept out of the file I read every session: the people in your life, your health, and your values live in their own note in your Personal folder. Anything in the index gets uploaded to the AI as context on every single turn and sits in the provider's logs. That's a fine trade for your project list. It isn't for your medications or your friends' names, so I only open that note when a job actually needs it — and I'll tell you when I do."
+
+   **Version control** — "Your vault is a git repository. Every change I make is recoverable: `git diff` shows what I touched this session, and one command puts any note back the way it was. That's what lets me edit your notes without stopping to ask each time."
 3. **Folder structure + indexes** — "Each project has a home and an index that maps it. Inbox catches everything, Archive stores finished work, Resources holds templates and Jobs."
 4. **Daily Notes** — "You don't write these. Tell any AI you're done and it offers to log the day. Forget, and the next AI checks for yesterday's note and fills in what it knows. Multiple AIs across multiple sessions all feed the same daily note."
 5. **Active Priorities** — "One list, everything open, tagged by project. Finish something and I archive it."
@@ -718,7 +798,7 @@ Ask: "Want me to create today's daily note as our first one? I'll log what we ju
 - Omit optional sections the person didn't answer. No empty sections.
 - `project` slugs are lowercase, hyphenated, derived from the project name ("The Coffee Shop" → `coffee-shop`).
 - Every note gets YAML frontmatter. No exceptions. Use the five-value `type` set: `index | reference | guide | plan | log`.
-- Use `wikilinks` for Key People and project/product names where appropriate.
+- Use `wikilinks` for project/product names and for anyone in the Key People roster (which lives in `Personal Context.md`, not the index — open it when a task involves people).
 - More information than the template holds? Include it. The template is a minimum, not a maximum.
 - The tone of the VAULT-INDEX is a real person explaining their life to someone who'll work with them every day. Not a resume. Not a bio.
 - Above all, remember what you're building: not a notes app, but the AI's memory and the structure that lets it operate from that memory on demand. Build for that.
