@@ -1,0 +1,34 @@
+# Guards the templates/ files against the copies of them embedded in
+# ai-memory-vault.md. See scripts/check-template-sync.sh for what it does and,
+# just as importantly, what it deliberately does not do.
+name: template-sync
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "ai-memory-vault.md"
+      - "templates/**"
+      - "scripts/check-template-sync.sh"
+      - ".github/workflows/template-sync.yml"
+  pull_request:
+    paths:
+      - "ai-memory-vault.md"
+      - "templates/**"
+      - "scripts/check-template-sync.sh"
+      - ".github/workflows/template-sync.yml"
+  workflow_dispatch:
+
+# Read-only. This job inspects files and returns an exit code; it writes nothing.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check embedded templates against templates/
+        shell: bash
+        run: bash scripts/check-template-sync.sh
