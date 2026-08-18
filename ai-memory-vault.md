@@ -444,10 +444,17 @@ Create at `01 - Daily Notes/Daily Note Template.md` — it lives IN the daily no
 ```markdown
 ---
 status: active
-project: meta
-type: reference
+project: personal
+type: log
 ---
-<!-- Every daily note gets created from a copy of this template. -->
+<!-- This template lives in your vault at `01 - Daily Notes/Daily Note Template.md`. Every daily note gets created from a copy of it. -->
+<!-- The frontmatter above belongs to the DAILY NOTE, not to this template file. Copy it verbatim.
+     Do not "correct" it to describe the template — every note created from this file inherits it,
+     and VAULT-INDEX.md specifies status: active / project: personal / type: log for daily notes.
+     A second copy of this template is embedded in ai-memory-vault.md §4.3. The two must stay
+     byte-identical; edit one, edit the other in the same pass.
+     A vault built from this may diverge deliberately (house wording, hyphens instead of
+     em-dashes). That is not drift — do not reconcile a live vault back to this file. -->
 
 # [Day of week], [Month] [Day], [Year]
 
@@ -469,13 +476,16 @@ type: reference
 -
 
 ### Notes Touched
+<!-- Wikilinks to any vault notes created, edited, or referenced this session. -->
 -
 
 ### Profile Updates
+<!-- What changed in the profile sections of VAULT-INDEX.md this session. For Personal Context,
+     log ONLY that it changed — never what changed. -->
 -
 ```
 
-(Note: the template file itself is `type: reference`; the daily notes created from it are `type: log`. This is the same template that ships in the repo as `templates/DAILY-NOTE.md`.)
+(This block and `templates/DAILY-NOTE.md` are two copies of one file and must stay byte-identical — edit one, edit the other in the same pass. The frontmatter is the **daily note's**: `status: active`, `project: personal`, `type: log`, matching the Daily Notes rule above and VAULT-INDEX.md. It is not a description of the template file, and it must not be changed to one — every note created from the template inherits whatever is written here.)
 
 ### 4.4 Active Priorities
 
