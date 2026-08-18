@@ -28,6 +28,22 @@ Starter files for the system. Every spot that needs your information is marked `
 - **[DAILY-NOTE.md](templates/DAILY-NOTE.md):** the daily-note template. Goes **inside your vault** at `01 - Daily Notes/Daily Note Template.md`. Every daily note gets created from it, so the log keeps one consistent, scannable shape.
 - **[MEMORY.md](templates/MEMORY.md):** the pointer for Claude Code's own memory. Goes in **Claude Code's project folder** (`~/.claude/projects/...`, not your vault). It redirects the native memory back into the vault so you never end up with two memory layers that drift apart.
 
+## Maintaining this repo
+
+Each template exists **twice**: once in `templates/`, and once embedded verbatim inside `ai-memory-vault.md` so that file works standalone. Edit one, edit the other in the same commit.
+
+That is not just a style rule. The build agent follows the embedded copy, so when the two disagreed, every vault built from this repo inherited the wrong daily-note frontmatter — one bad note per day, silently, for as long as it went unnoticed.
+
+`scripts/check-template-sync.sh` enforces it, and CI runs it on every change to the build doc, the templates, or the check itself:
+
+```
+bash scripts/check-template-sync.sh
+```
+
+It checks that every pair resolves, that frontmatter values agree across all pairs, and that the daily-note pair is byte-identical. It deliberately does **not** byte-diff `VAULT-INDEX.md` or `CLAUDE.md` against their embedded copies — those differ by design, because `templates/` is written for a human filling it in while the embedded copy is written for an agent filling it from the interview.
+
+If it fails because a section moved, update the `PAIRS` list at the top of the script. It fails closed on a heading it cannot find, rather than passing green while checking nothing.
+
 ## Support
 
 Free to use, and always will be. If this helped you out, you can buy me a coffee:
